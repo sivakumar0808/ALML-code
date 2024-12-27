@@ -1,0 +1,117 @@
+#Setup and Dependencies
+
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report
+
+# Ensure that plots are displayed inline
+%matplotlib inline
+
+#1. Load and Preprocess Data
+#In python
+# Load the data
+data = pd.read_csv('cloudmonitor_data.csv')
+
+# Check the first few rows
+print(data.head())
+
+# Assuming columns are 'timestamp', 'cpu', 'network', 'disk_io'
+# Convert 'timestamp' to datetime
+data['timestamp'] = pd.to_datetime(data['timestamp'])
+data.set_index('timestamp', inplace=True)
+
+# Fill or drop missing values
+data.fillna(method='ffill', inplace=True)  # Forward fill to handle missing values
+
+# Feature scaling
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(data[['cpu', 'network', 'disk_io']])
+
+#2. Anomaly Detection
+#python
+
+# Initialize and fit the Isolation Forest model
+model = IsolationForest(contamination=0.01, random_state=42)
+data['anomaly'] = model.fit_predict(scaled_data)
+
+# Anomalies are labeled -1, normal points are 1
+data['anomaly'] = np.where(data['anomaly'] == -1, 'Anomaly', 'Normal')
+
+#3. Categorize Anomalies
+#For categorization, let's assume we classify anomalies based on their magnitude and duration:
+#python
+
+# Example categorization (could be enhanced)
+def categorize_anomaly(row):
+    if row['anomaly'] == 'Anomaly':
+        if row['cpu'] > 2 * data['cpu'].mean():  # Arbitrary threshold for spikes
+            return 'Spike'
+        elif data['cpu'].rolling(window=10).mean().iloc[-1] < row['cpu'] < 2 * data['cpu'].mean():  # Example drift detection
+            return 'Drift'
+        else:
+            return 'Drop'
+    return 'Normal'
+
+data['category'] = data.apply(categorize_anomaly, axis=1)
+
+#4. Anomaly Scoring (Optional)
+#python
+
+# Define a simple scoring function
+def score_anomaly(row):
+    if row['anomaly'] == 'Anomaly':
+        return abs(row['cpu'] - data['cpu'].mean())
+    return 0
+
+data['severity_score'] = data.apply(score_anomaly, axis=1)
+
+#5. Visualization Dashboard
+#python
+
+# Plot time series and anomalies
+plt.figure(figsize=(14, 7))
+plt.plot(data.index, data['cpu'], label='CPU Usage', color='blue')
+plt.scatter(data[data['anomaly'] == 'Anomaly'].index, 
+            data[data['anomaly'] == 'Anomaly']['cpu'], 
+            color='red', 
+            label='Detected Anomalies')
+
+# Add plot details
+plt.title('CPU Usage with Anomalies')
+plt.xlabel('Timestamp')
+plt.ylabel('CPU Usage')
+plt.legend()
+plt.show()
+
+#6. Classification Report for Evaluation
+#Assuming you have ground truth labels for evaluation (usually for competition purposes):
+
+#python
+
+# For evaluation: Assuming ground truth labels are available
+# Replace with actual ground truth if available
+true_labels = data['true_labels']  # This column should be present in the dataset
+predicted_labels = data['anomaly']
+
+print(classification_report(true_labels, predicted_labels, target_names=['Normal', 'Anomaly']))
+
+#7. Readme File
+#Ensure your README.md includes:
+
+Setup Instructions: How to set up the environment and run the notebook.
+Code Explanation: Summary of what each part of the code does.
+Visualization Instructions: How to interpret the visualizations.
+Sample Output: Examples of the output produced by the code.
+
+#Summary of Approach:
+
+Data Preparation: Load, preprocess, and scale the data.
+Anomaly Detection: Apply Isolation Forest to detect anomalies.
+Categorization: Classify anomalies into categories based on predefined rules.
+Scoring: Optionally score anomalies based on severity.
+Visualization: Plot time series data and highlight anomalies.

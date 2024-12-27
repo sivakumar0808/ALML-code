@@ -1,0 +1,78 @@
+create database Blog
+
+
+CREATE TABLE [User] (
+    UserID INT PRIMARY KEY IDENTITY(1,1),
+    Username NVARCHAR(50) UNIQUE NOT NULL,
+    Email NVARCHAR(100) UNIQUE NOT NULL,
+    Password NVARCHAR(100) NOT NULL,
+    FullName NVARCHAR(100),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+
+CREATE TABLE Blog (
+    BlogID INT PRIMARY KEY IDENTITY(1,1),
+    Title NVARCHAR(100) NOT NULL,
+    Content NVARCHAR(MAX),
+    UserID INT FOREIGN KEY REFERENCES [User](UserID),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+
+CREATE TABLE Comment (
+    CommentID INT PRIMARY KEY IDENTITY(1,1),
+    Content NVARCHAR(MAX),
+    UserID INT FOREIGN KEY REFERENCES [User](UserID),
+    BlogID INT FOREIGN KEY REFERENCES Blog(BlogID),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Insert dummy data into the User table
+INSERT INTO [User] (Username, Email, Password, FullName, CreatedAt)
+VALUES 
+    ('john_doe', 'john@example.com', 'password123', 'John Doe', GETDATE()),
+    ('jane_smith', 'jane@example.com', 'password456', 'Jane Smith', GETDATE());
+
+-- Insert dummy data into the Blog table
+INSERT INTO Blog (Title, Content, UserID, CreatedAt)
+VALUES 
+    ('First Blog Post', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 1, GETDATE()),
+    ('Second Blog Post', 'Praesent vel nisi sed justo luctus condimentum.', 2, GETDATE());
+
+-- Insert dummy data into the Comment table
+INSERT INTO Comment (Content, UserID, BlogID, CreatedAt)
+VALUES 
+    ('Great post, John!', 2, 1, GETDATE()),
+    ('I agree with your points, Jane.', 1, 2, GETDATE());
+
+
+
+
+
+
+	-- Insert more dummy data into the User table
+INSERT INTO [User] (Username, Email, Password, FullName, CreatedAt)
+VALUES 
+    ('alice_wonderland', 'alice@example.com', 'password789', 'Alice Wonderland', GETDATE()),
+    ('bob_marley', 'bob@example.com', 'passwordabc', 'Bob Marley', GETDATE());
+
+-- Insert more dummy data into the Blog table
+INSERT INTO Blog (Title, Content, UserID, CreatedAt)
+VALUES 
+    ('Third Blog Post', 'Nullam facilisis ligula ac ante tristique, quis dictum libero mollis.', 3, GETDATE()),
+    ('Fourth Blog Post', 'Fusce vulputate ante vitae nisl euismod ultricies.', 4, GETDATE());
+
+-- Insert more dummy data into the Comment table
+INSERT INTO Comment (Content, UserID, BlogID, CreatedAt)
+VALUES 
+    ('Nice post, Alice!', 4, 3, GETDATE()),
+    ('I enjoyed reading this, Bob.', 3, 4, GETDATE());
+
+
+	select * from Comment
+	select * from Blog
+	select * from [User]
+
+
+
